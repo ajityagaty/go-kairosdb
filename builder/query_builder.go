@@ -41,6 +41,9 @@ type QueryBuilder interface {
 	// The metric to query for.
 	AddMetric(name string) QueryMetric
 
+	// Add a real metric to query for
+	AddRealMetric(QueryMetric) QueryMetric
+
 	// Returns the absolute range start time.
 	AbsoluteStart() time.Time
 
@@ -110,6 +113,11 @@ func (qb *qBuilder) SetCacheTime(cacheTimeMs int) QueryBuilder {
 
 func (qb *qBuilder) AddMetric(name string) QueryMetric {
 	qm := NewQueryMetric(name)
+	qb.MetricsArr = append(qb.MetricsArr, qm)
+	return qm
+}
+
+func (qb *qBuilder) AddRealMetric(qm QueryMetric) QueryMetric {
 	qb.MetricsArr = append(qb.MetricsArr, qm)
 	return qm
 }
