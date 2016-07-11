@@ -25,6 +25,8 @@ type MetricBuilder interface {
 
 	// Encode the Metrics list into JSON.
 	Build() ([]byte, error)
+
+	AddRealMetric(m Metric) Metric
 }
 
 // Type that implements the MetricBuilder interface.
@@ -38,6 +40,11 @@ func NewMetricBuilder() MetricBuilder {
 
 func (mb *mBuilder) AddMetric(name string) Metric {
 	m := NewMetric(name)
+	mb.Metrics = append(mb.Metrics, m)
+	return m
+}
+
+func (mb *mBuilder) AddRealMetric(m Metric) Metric {
 	mb.Metrics = append(mb.Metrics, m)
 	return m
 }
