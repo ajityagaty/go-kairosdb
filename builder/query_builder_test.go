@@ -18,12 +18,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dan-compton/go-kairosdb/builder/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQBMetricNameEmpty(t *testing.T) {
 	qb := NewQueryBuilder()
-	qb.SetRelativeStart(1, "MONTHS").AddMetric("")
+	qb.SetRelativeStart(1, utils.MONTHS).AddMetric("")
 
 	j, err := qb.Build()
 	assert.Equal(t, ErrorQMetricNameInvalid, err, "Query Metric name cannot be empty")
@@ -32,7 +33,7 @@ func TestQBMetricNameEmpty(t *testing.T) {
 
 func TestQBAbsRelativeStartSet(t *testing.T) {
 	qb := NewQueryBuilder()
-	qb.SetAbsoluteStart(time.Now()).SetRelativeStart(2, "MONTHS")
+	qb.SetAbsoluteStart(time.Now()).SetRelativeStart(2, utils.MONTHS)
 
 	j, err := qb.Build()
 	assert.Equal(t, ErrorAbsRelativeStartSet, err, "Both absolute & relative start times cannot be set")
@@ -50,7 +51,7 @@ func TestQBStartTimeNotSet(t *testing.T) {
 
 func TestQBRelativeStartDurationZero(t *testing.T) {
 	qb := NewQueryBuilder()
-	qb.SetRelativeStart(0, "MONTHS")
+	qb.SetRelativeStart(0, utils.MONTHS)
 
 	j, err := qb.Build()
 	assert.Equal(t, ErrorRelativeStartTimeInvalid, err, "Relative start durartion cannot be zero")
@@ -59,7 +60,7 @@ func TestQBRelativeStartDurationZero(t *testing.T) {
 
 func TestQBRelativeStartDurationNeg(t *testing.T) {
 	qb := NewQueryBuilder()
-	qb.SetRelativeStart(-1, "MONTHS")
+	qb.SetRelativeStart(-1, utils.MONTHS)
 
 	j, err := qb.Build()
 	assert.Equal(t, ErrorRelativeStartTimeInvalid, err, "Relative start durartion cannot be negative")
@@ -68,7 +69,7 @@ func TestQBRelativeStartDurationNeg(t *testing.T) {
 
 func TestQBAbsRelativeEndSet(t *testing.T) {
 	qb := NewQueryBuilder()
-	qb.SetAbsoluteEnd(time.Now()).SetRelativeEnd(2, "MONTHS")
+	qb.SetAbsoluteEnd(time.Now()).SetRelativeEnd(2, utils.MONTHS)
 
 	j, err := qb.Build()
 	assert.Equal(t, ErrorAbsRelativeEndSet, err, "Both absolute & relative end times cannot be set")
@@ -77,7 +78,7 @@ func TestQBAbsRelativeEndSet(t *testing.T) {
 
 func TestQBRelativeEndDurationZero(t *testing.T) {
 	qb := NewQueryBuilder()
-	qb.SetRelativeEnd(0, "MONTHS")
+	qb.SetRelativeEnd(0, utils.MONTHS)
 
 	j, err := qb.Build()
 	assert.Equal(t, ErrorRelativeEndTimeInvalid, err, "Relative end durartion cannot be zero")
@@ -86,7 +87,7 @@ func TestQBRelativeEndDurationZero(t *testing.T) {
 
 func TestQBRelativeEndDurationNeg(t *testing.T) {
 	qb := NewQueryBuilder()
-	qb.SetRelativeEnd(-1, "MONTHS")
+	qb.SetRelativeEnd(-1, utils.MONTHS)
 
 	j, err := qb.Build()
 	assert.Equal(t, ErrorRelativeEndTimeInvalid, err, "Relative end durartion cannot be negative")
