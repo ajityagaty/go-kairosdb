@@ -26,7 +26,6 @@ const (
 	WEEKS
 	MONTHS
 	YEARS
-	BADTIMEUNIT
 )
 
 func TimeUnitConst(i string) TimeUnit {
@@ -48,6 +47,6 @@ func TimeUnitConst(i string) TimeUnit {
 	case "YEARS":
 		return YEARS
 	default:
-		return BADTIMEUNIT
+		return MILLISECONDS
 	}
 }
