@@ -14,15 +14,40 @@
 
 package utils
 
-type TimeUnit string
+type TimeUnit int
 
+//go:generate stringer -type=TimeUnit
 const (
-	MILLISECONDS TimeUnit = "milliseconds"
-	SECONDS               = "seconds"
-	MINUTES               = "minutes"
-	HOURS                 = "hours"
-	DAYS                  = "days"
-	WEEKS                 = "weeks"
-	MONTHS                = "months"
-	YEARS                 = "years"
+	MILLISECONDS TimeUnit = iota
+	SECONDS
+	MINUTES
+	HOURS
+	DAYS
+	WEEKS
+	MONTHS
+	YEARS
+	BADTIMEUNIT
 )
+
+func TimeUnitConst(i string) TimeUnit {
+	switch i {
+	case "MILLISECONDS":
+		return MILLISECONDS
+	case "SECONDS":
+		return SECONDS
+	case "MINUTES":
+		return MINUTES
+	case "HOURS":
+		return HOURS
+	case "DAYS":
+		return DAYS
+	case "WEEKS":
+		return WEEKS
+	case "MONTHS":
+		return MONTHS
+	case "YEARS":
+		return YEARS
+	default:
+		return BADTIMEUNIT
+	}
+}
