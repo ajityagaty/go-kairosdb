@@ -18,7 +18,7 @@ NOTE: THIS IS STILL WORK IN PROGRESS.
 correctly. In order to get access to the package the following commands need to be executed:
 
 ```
-go get github.com/ajityagaty/go-kairosdb
+go get github.com/dan-compton/go-kairosdb
 go get github.com/stretchr/testify/assert
 ```
 
