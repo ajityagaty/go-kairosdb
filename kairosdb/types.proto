@@ -1,0 +1,12 @@
+syntax = "proto3";
+package kairosdb;
+
+
+option go_package = "kairosdb";
+
+// Because protobuf doesn't support Map<string, repeated string>
+message StringList {
+    repeated string values = 1;
+}
+
+

@@ -1,0 +1,75 @@
+syntax = "proto3";
+package kairosdb;
+
+import "types.proto";
+option go_package = "kairosdb";
+
+// Represents a kairosdb datapoint
+// https://github.com/kairosdb/kairosdb-client/blob/master/src/main/java/org/kairosdb/client/builder/DataPoint.java
+message Datapoint {
+    int64 timestamp = 1;
+    double value = 2;
+}
+
+
+// Represents a sampling in the QueryMetrics request body
+message Sampling {
+    string value = 1;
+    string unit = 2;
+}
+
+// Represents a kairosdb aggregator
+// https://kairosdb.github.io/docs/build/html/restapi/Aggregators.html
+message Aggregator {
+    string name = 1;
+    bool align_sampling = 2;
+    Sampling sampling = 3;
+}
+
+// Represents the group_property in the request
+// I've decided that it's not bad
+message GroupBy {
+    string name = 1;
+    repeated string tags = 2;
+    map<string, string> group = 3;
+}
+
+// Reprents a kairosdb QueryMetric
+// https://kairosdb.github.io/docs/build/html/restapi/QueryMetrics.html#id3
+message QueryMetric {
+    string name = 1;
+    map<string, StringList> tags = 2;
+    repeated GroupBy group_by = 3;
+    repeated Aggregator aggregators = 4;
+    int64 limit = 5;
+}
+message Result {
+    string name = 1;
+    repeated GroupBy group_by = 2;
+    map<string, StringList> tags = 3;
+    repeated Datapoint values = 4;
+}
+
+// Represents a single set of results for a given Query
+message Query {
+    repeated Result results = 1;
+}
+
+// Reprents a QueryMetrics request to kairosdb
+// https://kairosdb.github.io/docs/build/html/restapi/QueryMetrics.html#query-properties
+message QueryMetricsRequest {
+    repeated QueryMetric metrics = 1;
+    int64 cache_time = 2;
+    int64 start_absolute = 3;
+    int64 end_absolute = 4;
+}
+
+// Represents response to kairosdb QueryMetrics request
+message QueryMetricsResponse {
+    repeated Query queries = 1;
+    repeated string errors = 5;
+}
+
+service KairosDB {
+    rpc QueryMetrics(QueryMetricsRequest) returns (QueryMetricsResponse);
+}
