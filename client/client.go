@@ -18,7 +18,7 @@ import (
     "github.com/dan-compton/go-kairosdb/kairosdb"
 )
 
+// TODO: move my grpc stuff in and support it
 type Client interface {
-    // Queries KairosDB using the query built using the protobuf types
-    Query(qb kairosdb.QueryMetricsRequest) (*kairosdb.QueryMetricsResponse, error)
+    Query(in *kairosdb.QueryMetricsRequest) (*kairosdb.QueryMetricsResponse, error)
 }

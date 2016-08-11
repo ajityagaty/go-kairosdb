@@ -1,8 +1,7 @@
-package service
+package kairosdb
 
 import (
     "encoding/json"
-    "errors"
 )
 
 // Make QueryMetric marshal into valid kairosdb json
@@ -74,7 +73,7 @@ func (d *Datapoint) UnmarshalJSON(b []byte) error {
 
     if len(l) == 2 {
         if t, ok := l[0].(float64); ok {
-            d.Timestamp := int64(t)
+            d.Timestamp = int64(t)
         }
 
         switch value := l[1].(type) {

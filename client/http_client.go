@@ -19,142 +19,63 @@ import (
     "encoding/json"
     "io/ioutil"
     "net/http"
-
-    "github.com/dan-compton/go-kairosdb/response"
+    "fmt"
+    "errors"
+    "github.com/dan-compton/go-kairosdb/kairosdb"
+	log "github.com/opsee/logrus"
+	"github.com/hashicorp/go-multierror"
 )
 
-var (
-    api_version    = "/api/v1"
-    datapoints_ep  = api_version + "/datapoints"
-    query_ep       = api_version + "/datapoints/query"
-    version_ep     = api_version + "/version"
-    health_ep      = api_version + "/health/check"
-    metricnames_ep = api_version + "/metricnames"
-    tagnames_ep    = api_version + "/tagnames"
-    tagvalues_ep   = api_version + "/tagvalues"
-    delmetric_ep   = api_version + "/metric/"
+const (
+    KdbQuery = "api/v1/datapoints/query"
 )
 
 // This is the type that implements the Client interface.
-type httpClient struct {
-    serverAddress string
+type KDBClient struct {
+    kdbAddress string
 }
 
-func NewHttpClient(serverAddress string) Client {
-    return &httpClient{
-        serverAddress: serverAddress,
+// Returns a new http client
+// TODO: reuse transports
+func New(addr string) Client {
+    return &KDBClient{
+        kdbAddress: addr,
     }
 }
 
-// Queries KairosDB using the query built using the protobuf types
-func (hc *httpClient) Query(qb kairosdb.QueryMetricsRequest) (*response.QueryResponse, error) {
-    // Get the JSON representation of the query.
-    data, err : json.Marshal(qb)
+// Queries the kdb server via the QueryMetricsRequest protobuf generate type
+func (s *KDBClient) Query(in *kairosdb.QueryMetricsRequest) (*kairosdb.QueryMetricsResponse, error) {
+    b, err := json.Marshal(in)
     if err != nil {
         return nil, err
     }
 
-    return hc.postQuery(hc.serverAddress+query_ep, data)
-}
+    hreq, err := http.NewRequest("POST", fmt.Sprintf("%s/%s", s.kdbAddress, KdbQuery), bytes.NewBuffer(b))
+    hreq.Header.Set("Content-Type", "application/json")
 
-func (hc *httpClient) sendRequest(url, method string) (*http.Response, error) {
-    req, err := http.NewRequest(method, url, nil)
+    client := &http.Client{}
+    resp, err := client.Do(hreq)
     if err != nil {
-        return nil, err
+        log.WithError(err).Fatalf("couldn't query kairosdb server")
     }
-    req.Header.Add("accept", "application/json")
-    cli := &http.Client{}
-
-    return cli.Do(req)
-}
-
-func (hc *httpClient) httpRespToResponse(httpResp *http.Response) (*response.Response, error) {
-    resp := &response.Response{}
-    resp.SetStatusCode(httpResp.StatusCode)
-
-    if httpResp.StatusCode != http.StatusNoContent {
-        // If the request has failed, then read the response body.
-        defer httpResp.Body.Close()
-        contents, err := ioutil.ReadAll(httpResp.Body)
-        if err != nil {
-            return nil, err
-        } else {
-            // Unmarshal the contents into Response object.
-            err = json.Unmarshal(contents, resp)
-            if err != nil {
-                return nil, err
-            }
-        }
-    }
-
-    return resp, nil
-}
-
-func (hc *httpClient) httpRespToQueryResponse(httpResp *http.Response) (*response.QueryResponse, error) {
-    // Read the HTTP response body.
-    defer httpResp.Body.Close()
-    contents, err := ioutil.ReadAll(httpResp.Body)
-    if err != nil {
-        return nil, err
-    }
-
-
-    qr := &QueryMetricsResponse{}
-
-    // Unmarshal the contents into QueryResponse object.
-    err = json.Unmarshal(contents, qr)
-    if err != nil {
-        return nil, err
-    }
-
-    return qr, nil
-}
-
-func (hc *httpClient) get(url string) (*response.GetResponse, error) {
-    resp, err := hc.sendRequest(url, "GET")
-    if err != nil {
-        return nil, err
-    }
-
     defer resp.Body.Close()
-    contents, err := ioutil.ReadAll(resp.Body)
+    body, _ := ioutil.ReadAll(resp.Body)
+
+    gr := &kairosdb.QueryMetricsResponse{}
+    err = json.Unmarshal(body, &gr)
     if err != nil {
         return nil, err
-    } else {
-        gr := response.NewGetResponse(resp.StatusCode)
+    }
 
-        err = json.Unmarshal(contents, gr)
-        if err != nil {
-            return nil, err
+    // handle errors field
+    if len(gr.Errors) > 0 {
+        var errs error
+        for _, e := range gr.Errors {
+            errs = multierror.Append(errs, errors.New(e))
         }
-
-        return gr, nil
-    }
-}
-
-func (hc *httpClient) postData(url string, data []byte) (*response.Response, error) {
-    resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
-    if err != nil {
-        return nil, err
+        return nil, errs
     }
 
-    return hc.httpRespToResponse(resp)
+    return gr, nil
 }
 
-func (hc *httpClient) postQuery(url string, data []byte) (*response.QueryResponse, error) {
-    resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
-    if err != nil {
-        return nil, err
-    }
-
-    return hc.httpRespToQueryResponse(resp)
-}
-
-func (hc *httpClient) delete(url string) (*response.Response, error) {
-    resp, err := hc.sendRequest(url, "DELETE")
-    if err != nil {
-        return nil, err
-    }
-
-    return hc.httpRespToResponse(resp)
-}
